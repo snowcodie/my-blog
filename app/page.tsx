@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,30 +13,19 @@ interface Post {
   created_at: string;
 }
 
-export async function getStaticProps() {
+async function getPosts() {
   try {
     const response = await axios.get('http://localhost:3000/api/posts');
-    return {
-      props: {
-        posts: response.data,
-      },
-      revalidate: 60,
-    };
+    return response.data;
   } catch (error) {
     console.error('Error fetching posts:', error);
-    return {
-      props: {
-        posts: [],
-      },
-    };
+    return [];
   }
 }
 
-interface HomeProps {
-  posts: Post[];
-}
+export default async function Home() {
+  const posts = await getPosts();
 
-const Home: React.FC<HomeProps> = ({ posts }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation */}
@@ -58,7 +47,7 @@ const Home: React.FC<HomeProps> = ({ posts }) => {
 
         {/* Blog Posts Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post) => (
+          {posts.map((post: Post) => (
             <Link key={post.id} href={`/blog/${post.slug}`}>
               <article className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <div className="p-6 flex flex-col h-full">
@@ -85,6 +74,4 @@ const Home: React.FC<HomeProps> = ({ posts }) => {
       </div>
     </div>
   );
-};
-
-export default Home;
+}

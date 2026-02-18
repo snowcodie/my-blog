@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -22,56 +24,34 @@ interface Comment {
   created_at: string;
 }
 
-export async function getStaticPaths() {
-  try {
-    const response = await axios.get('http://localhost:3000/api/posts');
-    const paths = response.data.map((post: Post) => ({
-      params: { slug: post.slug },
-    }));
-    return {
-      paths,
-      fallback: 'blocking',
-    };
-  } catch (error) {
-    console.error('Error generating paths:', error);
-    return { paths: [], fallback: 'blocking' };
-  }
-}
-
-export async function getStaticProps({ params }: { params: { slug: string } }) {
-  try {
-    const response = await axios.get(`http://localhost:3000/api/posts?slug=${params.slug}`);
-    return {
-      props: {
-        post: response.data,
-      },
-      revalidate: 60,
-    };
-  } catch (error) {
-    console.error('Error fetching post:', error);
-    return {
-      notFound: true,
-    };
-  }
-}
-
-interface BlogPostProps {
-  post: Post;
-}
-
-const BlogPost: React.FC<BlogPostProps> = ({ post }) => {
+export default function BlogPost({ params }: { params: { slug: string } }) {
+  const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [likes, setLikes] = useState(post.likes);
+  const [likes, setLikes] = useState(0);
   const [newComment, setNewComment] = useState({ author: '', email: '', content: '' });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchComments();
-  }, []);
+    fetchPost();
+  }, [params.slug]);
 
-  const fetchComments = async () => {
+  const fetchPost = async () => {
     try {
-      const response = await axios.get(`/api/comments/${post.id}`);
+      const response = await axios.get(`/api/posts?slug=${params.slug}`);
+      setPost(response.data);
+      setLikes(response.data.likes);
+      fetchComments(response.data.id);
+    } catch (error) {
+      console.error('Error fetching post:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async (postId: number) => {
+    try {
+      const response = await axios.get(`/api/comments/${postId}`);
       setComments(response.data);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -79,6 +59,7 @@ const BlogPost: React.FC<BlogPostProps> = ({ post }) => {
   };
 
   const handleLike = async () => {
+    if (!post) return;
     try {
       const newLikes = likes + 1;
       setLikes(newLikes);
@@ -93,23 +74,31 @@ const BlogPost: React.FC<BlogPostProps> = ({ post }) => {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.author || !newComment.content) {
+    if (!post || !newComment.author || !newComment.content) {
       alert('Please fill in required fields');
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
     try {
       await axios.post(`/api/comments/${post.id}`, newComment);
       setNewComment({ author: '', email: '', content: '' });
-      fetchComments();
+      fetchComments(post.id);
     } catch (error) {
       console.error('Error posting comment:', error);
       alert('Failed to post comment');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!post) {
+    return <div className="min-h-screen flex items-center justify-center">Post not found</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -177,10 +166,10 @@ const BlogPost: React.FC<BlogPostProps> = ({ post }) => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitting}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Posting...' : 'Post Comment'}
+              {submitting ? 'Posting...' : 'Post Comment'}
             </button>
           </form>
 
@@ -212,6 +201,4 @@ const BlogPost: React.FC<BlogPostProps> = ({ post }) => {
       </div>
     </div>
   );
-};
-
-export default BlogPost;
+}
