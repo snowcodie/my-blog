@@ -16,8 +16,10 @@
     "lucide-react": "^0.263.1",
     "mysql2": "^3.6.0",
     "next": "^14",
+    "quill": "^2.0.3",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-quill": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

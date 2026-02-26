@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
+import AdminSidebar from '@/app/components/AdminSidebar';
 
 export default function CreateAdminPage() {
   const [loading, setLoading] = useState(false);
@@ -56,26 +58,27 @@ export default function CreateAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-md mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Create New Admin</h1>
-          <Link href="/admin" className="text-blue-600 hover:text-blue-700 font-semibold">
-            ← Back to Admin
-          </Link>
-        </div>
+    <div className="flex h-screen bg-slate-50">
+      <AdminSidebar />
+      
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-md mx-auto p-6">
+          <div className="flex items-center gap-3 mb-8">
+            <Users className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-slate-900">Create New Admin</h1>
+          </div>
 
-        <div className="bg-white rounded-lg shadow p-8">
-          <form onSubmit={handleCreateAdmin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+          <div className="bg-white rounded-lg shadow p-8">
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               />
@@ -116,14 +119,15 @@ export default function CreateAdminPage() {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-slate-200">
-            <p className="text-sm text-slate-600 font-semibold mb-3">Info:</p>
-            <ul className="text-sm text-slate-600 space-y-2">
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-semibold mb-3">Info:</p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
               <li>• Username must be unique</li>
               <li>• Password must be at least 6 characters</li>
               <li>• New admin can log in with username/password</li>
               <li>• Or use ADMIN_TOKEN from .env.local</li>
             </ul>
+          </div>
           </div>
         </div>
       </div>

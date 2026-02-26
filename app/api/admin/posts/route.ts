@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await query(
-      'SELECT id, slug, title, excerpt, likes, published, created_at FROM posts ORDER BY created_at DESC'
+      `SELECT p.id, p.slug, p.title, p.excerpt, p.category, p.cover_image, p.likes, p.views, p.published, p.created_at,
+       (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND approved = true) as comments_count
+       FROM posts p
+       ORDER BY p.created_at DESC`
     );
 
     return NextResponse.json(results);

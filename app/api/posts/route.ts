@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import jwt from 'jsonwebtoken';
 
 interface Post {
   id: number;
@@ -16,11 +17,42 @@ interface Post {
 export async function GET(request: NextRequest) {
   try {
     const slug = request.nextUrl.searchParams.get('slug');
+    const series = request.nextUrl.searchParams.get('series');
     
-    if (slug) {
-      // Get single post by slug
+    // Check if admin is authenticated
+    const token = request.cookies.get('adminToken')?.value;
+    let isAdmin = false;
+    if (token) {
+      try {
+        jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-this');
+        isAdmin = true;
+      } catch {
+        // Not admin
+      }
+    }
+    
+    if (series) {
+      // Get all posts in a series (series can be name or id)
       const results = await query(
-        'SELECT * FROM posts WHERE slug = ? AND published = true',
+        `SELECT p.id, p.slug, p.title, p.series_part, s.name as series_name, s.total_parts as series_total
+         FROM posts p
+         JOIN series s ON p.series_id = s.id
+         WHERE (s.name = ? OR s.id = ?) AND p.published = true
+         ORDER BY p.series_part ASC`,
+        [series, series]
+      ) as Post[];
+      
+      return NextResponse.json(results);
+    } else if (slug) {
+      // Get single post by slug with comment count
+      // For admin, show all posts; for public, only published
+      const whereClause = isAdmin ? 'WHERE p.slug = ?' : 'WHERE p.slug = ? AND p.published = true';
+      const results = await query(
+        `SELECT p.*, s.name as series_name, s.total_parts as series_total,
+         (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
+         FROM posts p 
+         LEFT JOIN series s ON p.series_id = s.id
+         ${whereClause}`,
         [slug]
       ) as Post[];
       
@@ -28,11 +60,20 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Post not found' }, { status: 404 });
       }
       
+      // Increment view count
+      await query('UPDATE posts SET views = views + 1 WHERE id = ?', [results[0].id]);
+      
       return NextResponse.json(results[0]);
     } else {
-      // Get all published posts
+      // Get all published posts with comment counts and series info
       const results = await query(
-        'SELECT id, slug, title, excerpt, likes, created_at FROM posts WHERE published = true ORDER BY created_at DESC'
+        `SELECT p.id, p.slug, p.title, p.excerpt, p.category, p.cover_image, p.likes, p.views, p.created_at,
+         p.series_id, p.series_part, s.name as series_name, s.total_parts as series_total,
+         (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
+         FROM posts p 
+         LEFT JOIN series s ON p.series_id = s.id
+         WHERE p.published = true 
+         ORDER BY p.created_at DESC`
       ) as Post[];
       
       return NextResponse.json(results);
@@ -45,27 +86,62 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const adminToken = request.headers.get('x-admin-token');
+    const token = request.cookies.get('adminToken')?.value;
 
-    if (adminToken !== process.env.ADMIN_TOKEN) {
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    try {
+      jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-this');
+    } catch {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { title, content, excerpt, slug } = body;
+    const { title, content, excerpt, slug, category, cover_image, published, series_name, series_part } = body;
+
+    console.log('POST /api/posts - category value:', category);
+    console.log('POST /api/posts - series_name:', series_name);
 
     if (!title || !content || !slug) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    let series_id = null;
+    
+    // If series_name is provided, find or create the series
+    if (series_name) {
+      // Check if series exists (name is globally unique)
+      const existingSeries: any = await query(
+        'SELECT id FROM series WHERE name = ?',
+        [series_name]
+      );
+      
+      if (existingSeries.length > 0) {
+        // Series exists - reuse it
+        series_id = existingSeries[0].id;
+        console.log('Reusing existing series ID:', series_id);
+      } else {
+        // Create new series with the post's category (should be section ID, not slug)
+        console.log('Creating new series with category (should be section ID):', category || 'general');
+        const result: any = await query(
+          'INSERT INTO series (name, category, total_parts) VALUES (?, ?, ?)',
+          [series_name, category || 'general', 0]
+        );
+        series_id = result.insertId;
+        console.log('Created new series with ID:', series_id);
+      }
+    }
+
     await query(
-      'INSERT INTO posts (slug, title, content, excerpt) VALUES (?, ?, ?, ?)',
-      [slug, title, content, excerpt || '']
+      'INSERT INTO posts (slug, title, content, excerpt, category, cover_image, series_id, series_part, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [slug, title, content, excerpt || '', category || 'general', cover_image || null, series_id, series_part || null, published || false]
     );
 
-    return NextResponse.json({ message: 'Post created successfully' }, { status: 201 });
-  } catch (error) {
+    return NextResponse.json({ success: true, message: 'Post created successfully' }, { status: 201 });
+  } catch (error: any) {
     console.error('Error creating post:', error);
-    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create post', details: error.message }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import AdminSidebar from '@/app/components/AdminSidebar';
 
 interface Comment {
   id: number;
@@ -200,27 +201,22 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900">Admin Dashboard</h1>
-          <div className="flex gap-3">
-            <Link 
-              href="/admin/create-user" 
-              className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700"
-            >
-              + New Admin
-            </Link>
+    <div className="min-h-screen bg-slate-50">
+      <AdminSidebar />
+      
+      <div className="md:ml-64 p-8">
+        <div className="max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-slate-900">Admin Dashboard</h1>
             <button
               onClick={handleLogout}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700"
+              className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700"
             >
               Logout
             </button>
           </div>
-        </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
           {/* Pending Comments */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">
@@ -275,6 +271,7 @@ export default function AdminPage() {
                 ))
               )}
             </div>
+          </div>
           </div>
         </div>
       </div>
