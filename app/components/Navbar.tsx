@@ -166,14 +166,14 @@ export default function Navbar({ posts, activeCategory, onCategoryChange }: Navb
             </button>
 
             {/* Admin Button */}
-            <Link
+            {/* <Link
               href="/admin"
               className="hidden sm:inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-cyan-600 dark:to-cyan-700 text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-xs sm:text-sm group"
               title="Admin panel"
             >
               <Code2 size={16} className="text-white group-hover:rotate-12 transition-transform" />
               <span>Admin</span>
-            </Link>
+            </Link> */}
 
             {/* Mobile Menu Toggle */}
             <button
