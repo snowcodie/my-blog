@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import { Navigation, ChevronLeft, Plus, Trash2, Edit2, GripVertical, Check, X } from 'lucide-react';
+import { Navigation, Plus, Trash2, Edit2, GripVertical, Check, X } from 'lucide-react';
 import AdminSidebar from '@/app/components/AdminSidebar';
 
 interface NavSection {
