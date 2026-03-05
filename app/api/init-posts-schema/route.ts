@@ -3,21 +3,20 @@ import { getConnection } from '@/lib/db';
 
 export async function GET() {
   try {
-    const connection = await getConnection();
+    const client = await getConnection();
     
     try {
-      // Check if cover_image column exists
-      const [columns] = await connection.execute(
-        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
-         WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = 'posts' 
-         AND COLUMN_NAME = 'cover_image'`
+      // Check if cover_image column exists in PostgreSQL
+      const columns = await client.query(
+        `SELECT column_name FROM information_schema.columns 
+         WHERE table_name = 'posts' 
+         AND column_name = 'cover_image'`
       );
 
-      if (Array.isArray(columns) && columns.length === 0) {
+      if (columns.rows.length === 0) {
         // Add cover_image column if it doesn't exist
-        await connection.execute(
-          'ALTER TABLE posts ADD COLUMN cover_image LONGTEXT AFTER category'
+        await client.query(
+          'ALTER TABLE posts ADD COLUMN cover_image TEXT'
         );
         
         return NextResponse.json({ 
@@ -31,7 +30,7 @@ export async function GET() {
         });
       }
     } finally {
-      connection.release();
+      client.release();
     }
   } catch (error: any) {
     console.error('Error updating database:', error);

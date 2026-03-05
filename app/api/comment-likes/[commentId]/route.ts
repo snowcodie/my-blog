@@ -10,7 +10,7 @@ export async function PUT(
     const { likes } = body;
 
     await query(
-      'UPDATE comments SET likes = ? WHERE id = ?',
+      'UPDATE comments SET likes = $1 WHERE id = $2',
       [likes, params.commentId]
     );
 

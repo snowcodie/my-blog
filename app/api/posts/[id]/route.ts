@@ -25,7 +25,7 @@ export async function PUT(
     if (body.likes !== undefined && Object.keys(body).length === 1) {
       // Simple likes update
       await query(
-        'UPDATE posts SET likes = ? WHERE id = ?',
+        'UPDATE posts SET likes = $1 WHERE id = $2',
         [body.likes, params.id]
       );
     } else {
@@ -45,7 +45,7 @@ export async function PUT(
       if (series_name) {
         // Check if series exists (name is globally unique)
         const existingSeries: any = await query(
-          'SELECT id FROM series WHERE name = ?',
+          'SELECT id FROM series WHERE name = $1',
           [series_name]
         );
         
@@ -57,16 +57,16 @@ export async function PUT(
           // Create new series with the post's category (should be section ID, not slug)
           console.log('PUT - Creating new series with category (should be section ID):', category || 'general');
           const result: any = await query(
-            'INSERT INTO series (name, category, total_parts) VALUES (?, ?, ?)',
+            'INSERT INTO series (name, category, total_parts) VALUES ($1, $2, $3) RETURNING id',
             [series_name, category || 'general', 0]
           );
-          series_id = result.insertId;
+          series_id = (result.length > 0) ? result[0].id : null;
           console.log('PUT - Created new series with ID:', series_id);
         }
       }
 
       await query(
-        'UPDATE posts SET title = ?, content = ?, excerpt = ?, slug = ?, category = ?, cover_image = ?, series_id = ?, series_part = ?, published = ? WHERE id = ?',
+        'UPDATE posts SET title = $1, content = $2, excerpt = $3, slug = $4, category = $5, cover_image = $6, series_id = $7, series_part = $8, published = $9 WHERE id = $10',
         [title, content, excerpt || '', slug, category || 'general', cover_image || null, series_id, series_part || null, published || false, params.id]
       );
     }
@@ -95,7 +95,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    await query('DELETE FROM posts WHERE id = ?', [params.id]);
+    await query('DELETE FROM posts WHERE id = $1', [params.id]);
 
     return NextResponse.json({ success: true, message: 'Post deleted successfully' });
   } catch (error: any) {

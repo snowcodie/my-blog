@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         `SELECT p.id, p.slug, p.title, p.series_part, s.name as series_name, s.total_parts as series_total
          FROM posts p
          JOIN series s ON p.series_id = s.id
-         WHERE (s.name = ? OR s.id = ?) AND p.published = true
+         WHERE (s.name = $1 OR s.id = $2) AND p.published = true
          ORDER BY p.series_part ASC`,
         [series, series]
       ) as Post[];
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     } else if (slug) {
       // Get single post by slug with comment count
       // For admin, show all posts; for public, only published
-      const whereClause = isAdmin ? 'WHERE p.slug = ?' : 'WHERE p.slug = ? AND p.published = true';
+      const whereClause = isAdmin ? 'WHERE p.slug = $1' : 'WHERE p.slug = $1 AND p.published = true';
       const results = await query(
         `SELECT p.*, s.name as series_name, s.total_parts as series_total,
          (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       }
       
       // Increment view count
-      await query('UPDATE posts SET views = views + 1 WHERE id = ?', [results[0].id]);
+      await query('UPDATE posts SET views = views + 1 WHERE id = $1', [results[0].id]);
       
       return NextResponse.json(results[0]);
     } else {
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     if (series_name) {
       // Check if series exists (name is globally unique)
       const existingSeries: any = await query(
-        'SELECT id FROM series WHERE name = ?',
+        'SELECT id FROM series WHERE name = $1',
         [series_name]
       );
       
@@ -126,16 +126,16 @@ export async function POST(request: NextRequest) {
         // Create new series with the post's category (should be section ID, not slug)
         console.log('Creating new series with category (should be section ID):', category || 'general');
         const result: any = await query(
-          'INSERT INTO series (name, category, total_parts) VALUES (?, ?, ?)',
+          'INSERT INTO series (name, category, total_parts) VALUES ($1, $2, $3) RETURNING id',
           [series_name, category || 'general', 0]
         );
-        series_id = result.insertId;
+        series_id = (result.length > 0) ? result[0].id : null;
         console.log('Created new series with ID:', series_id);
       }
     }
 
     await query(
-      'INSERT INTO posts (slug, title, content, excerpt, category, cover_image, series_id, series_part, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO posts (slug, title, content, excerpt, category, cover_image, series_id, series_part, published) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
       [slug, title, content, excerpt || '', category || 'general', cover_image || null, series_id, series_part || null, published || false]
     );
 

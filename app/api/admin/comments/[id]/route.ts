@@ -28,10 +28,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const commentId = params.id;
 
     if (action === 'approve') {
-      await query('UPDATE comments SET approved = true WHERE id = ?', [commentId]);
+      await query('UPDATE comments SET approved = true WHERE id = $1', [commentId]);
       return NextResponse.json({ success: true, message: 'Comment approved' });
     } else if (action === 'reject') {
-      await query('DELETE FROM comments WHERE id = ?', [commentId]);
+      await query('DELETE FROM comments WHERE id = $1', [commentId]);
       return NextResponse.json({ success: true, message: 'Comment deleted' });
     }
 
@@ -58,7 +58,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     const commentId = params.id;
-    await query('DELETE FROM comments WHERE id = ?', [commentId]);
+    await query('DELETE FROM comments WHERE id = $1', [commentId]);
 
     return NextResponse.json({ success: true, message: 'Comment deleted' });
   } catch (error) {

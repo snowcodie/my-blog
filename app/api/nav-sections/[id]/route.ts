@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConnection } from '@/lib/db';
+import { query } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -25,20 +25,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
     }
 
-    const connection = await getConnection();
-    try {
-      await connection.query(
-        'UPDATE nav_sections SET name = ?, slug = ?, icon = ?, description = ?, active = ?, order_index = ?, category_id = ? WHERE id = ?',
-        [name, slug, icon || null, description || null, active ? 1 : 0, order_index || 0, category_id || null, id]
-      );
+    await query(
+      'UPDATE nav_sections SET name = $1, slug = $2, icon = $3, description = $4, active = $5, order_index = $6, category_id = $7 WHERE id = $8',
+      [name, slug, icon || null, description || null, active ? true : false, order_index || 0, category_id || null, id]
+    );
 
-      return NextResponse.json({
-        success: true,
-        message: 'Navigation section updated successfully',
-      });
-    } finally {
-      connection.release();
-    }
+    return NextResponse.json({
+      success: true,
+      message: 'Navigation section updated successfully',
+    });
   } catch (error) {
     console.error('Error updating nav section:', error);
     return NextResponse.json(
@@ -65,17 +60,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     const id = parseInt(params.id);
 
-    const connection = await getConnection();
-    try {
-      await connection.query('DELETE FROM nav_sections WHERE id = ?', [id]);
+    await query('DELETE FROM nav_sections WHERE id = $1', [id]);
 
-      return NextResponse.json({
-        success: true,
-        message: 'Navigation section deleted successfully',
-      });
-    } finally {
-      connection.release();
-    }
+    return NextResponse.json({
+      success: true,
+      message: 'Navigation section deleted successfully',
+    });
   } catch (error) {
     console.error('Error deleting nav section:', error);
     return NextResponse.json(

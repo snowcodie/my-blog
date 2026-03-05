@@ -17,7 +17,7 @@ export async function POST(
 
     // Check if user has already liked this post
     const existingLikes: any = await query(
-      'SELECT id FROM user_post_likes WHERE user_token = ? AND post_id = ?',
+      'SELECT id FROM user_post_likes WHERE user_token = $1 AND post_id = $2',
       [userToken, postId]
     );
 
@@ -30,19 +30,19 @@ export async function POST(
 
     // Add like record
     await query(
-      'INSERT INTO user_post_likes (user_token, post_id) VALUES (?, ?)',
+      'INSERT INTO user_post_likes (user_token, post_id) VALUES ($1, $2)',
       [userToken, postId]
     );
 
     // Increment post likes count
     await query(
-      'UPDATE posts SET likes = likes + 1 WHERE id = ?',
+      'UPDATE posts SET likes = likes + 1 WHERE id = $1',
       [postId]
     );
 
     // Get updated likes count
     const result: any = await query(
-      'SELECT likes FROM posts WHERE id = ?',
+      'SELECT likes FROM posts WHERE id = $1',
       [postId]
     );
 
@@ -76,7 +76,7 @@ export async function GET(
     const postId = parseInt(params.id);
 
     const existingLikes: any = await query(
-      'SELECT id FROM user_post_likes WHERE user_token = ? AND post_id = ?',
+      'SELECT id FROM user_post_likes WHERE user_token = $1 AND post_id = $2',
       [userToken, postId]
     );
 

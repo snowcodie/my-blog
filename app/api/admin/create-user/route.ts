@@ -4,11 +4,9 @@ import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
-    const adminToken = request.headers.get('x-admin-token');
-
-    // Only allow creation if valid admin token is provided
-    if (adminToken !== process.env.ADMIN_TOKEN) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check if admin creation is enabled
+    if (process.env.ENABLE_ADMIN_CREATION !== 'true') {
+      return NextResponse.json({ error: 'Admin creation is disabled' }, { status: 403 });
     }
 
     const body = await request.json();

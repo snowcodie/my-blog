@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     let results;
     if (category) {
       results = await query(
-        'SELECT * FROM series WHERE category = ? ORDER BY name ASC',
+        'SELECT * FROM series WHERE category = $1 ORDER BY name ASC',
         [category]
       ) as Series[];
     } else {
@@ -56,14 +56,14 @@ export async function POST(request: NextRequest) {
     }
 
     const result: any = await query(
-      'INSERT INTO series (name, category, description, total_parts) VALUES (?, ?, ?, ?)',
+      'INSERT INTO series (name, category, description, total_parts) VALUES ($1, $2, $3, $4) RETURNING id',
       [name, category || 'general', description || null, total_parts || 0]
     );
 
     return NextResponse.json({ 
       success: true, 
       message: 'Series created successfully',
-      id: result.insertId
+      id: (result.length > 0) ? result[0].id : null
     }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating series:', error);

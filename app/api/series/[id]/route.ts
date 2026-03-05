@@ -28,7 +28,7 @@ export async function PUT(
 
     // Check if another series with same name exists (excluding current)
     const existing: any = await query(
-      'SELECT id FROM series WHERE name = ? AND id != ?',
+      'SELECT id FROM series WHERE name = $1 AND id != $2',
       [name, params.id]
     );
 
@@ -37,7 +37,7 @@ export async function PUT(
     }
 
     await query(
-      'UPDATE series SET name = ?, category = ?, description = ?, total_parts = ? WHERE id = ?',
+      'UPDATE series SET name = $1, category = $2, description = $3, total_parts = $4 WHERE id = $5',
       [name, category, description || null, total_parts || 0, params.id]
     );
 
@@ -66,7 +66,7 @@ export async function DELETE(
     }
 
     // Set series_id to NULL for all posts in this series (cascade handled by FK)
-    await query('DELETE FROM series WHERE id = ?', [params.id]);
+    await query('DELETE FROM series WHERE id = $1', [params.id]);
 
     return NextResponse.json({ success: true, message: 'Series deleted successfully' });
   } catch (error: any) {
