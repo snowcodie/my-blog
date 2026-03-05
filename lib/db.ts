@@ -1,11 +1,14 @@
 import { Pool } from 'pg';
 
+const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('aiven');
+
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'blog_db',
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
 export async function getConnection() {
