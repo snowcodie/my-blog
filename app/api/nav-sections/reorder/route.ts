@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Update order_index for all sections
     const updatePromises = body.sections.map((section) =>
       query(
-        'UPDATE nav_sections SET order_index = ? WHERE id = ?',
+        'UPDATE nav_sections SET order_index = $1 WHERE id = $2',
         [section.order_index, section.id]
       )
     );

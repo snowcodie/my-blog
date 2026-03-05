@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowRight, BookOpen, Zap, Code, Wrench, MapPin } from 'lucide-react';
+import { ArrowRight, Zap, Code, MapPin } from 'lucide-react';
 import Navbar from '@/app/components/Navbar';
 import LoadingScreen from '@/app/components/LoadingScreen';
 
@@ -69,6 +69,8 @@ export default function Home() {
       
       return () => clearTimeout(timer);
     }
+    // No cleanup needed for other paths
+    return undefined;
   }, [mounted, loading, settingsLoaded, fullyReady]);
 
   const fetchSettings = async () => {
@@ -145,7 +147,7 @@ export default function Home() {
     });
 
     // Sort posts within each series by part number
-    seriesMap.forEach((posts, seriesName) => {
+    seriesMap.forEach((posts) => {
       posts.sort((a, b) => (a.series_part || 0) - (b.series_part || 0));
     });
 
@@ -265,7 +267,7 @@ export default function Home() {
           </div>
         ) : filteredPosts.length > 0 ? (
           <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {groupedContent.map((item, index) => {
+            {groupedContent.map((item) => {
               if (item.type === 'series') {
                 // Series Card - Layered UI
                 const firstPost = item.posts[0];

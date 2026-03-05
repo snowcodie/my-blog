@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       : 0;
 
     await query(
-      'INSERT INTO nav_sections (name, slug, icon, description, category_id, order_index) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO nav_sections (name, slug, icon, description, category_id, order_index) VALUES ($1, $2, $3, $4, $5, $6)',
       [
         name,
         slug,

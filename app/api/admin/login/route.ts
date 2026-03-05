@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Method 2: Username/password login (from database)
     if (username && password) {
       const results = await query(
-        'SELECT id, password_hash FROM admin_users WHERE username = ?',
+        'SELECT id, password_hash FROM admin_users WHERE username = $1',
         [username]
       );
 

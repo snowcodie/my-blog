@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { FileEdit, Plus, Trash2, Edit2, Eye, Check, X, Image, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileEdit, Plus, Trash2, Edit2, Eye, Check, X, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import AdminSidebar from '@/app/components/AdminSidebar';
 import 'react-quill/dist/quill.snow.css';
 

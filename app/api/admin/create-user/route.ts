@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Insert new admin
     await query(
-      'INSERT INTO admin_users (username, password_hash) VALUES (?, ?)',
+      'INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
       [username, passwordHash]
     );
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       message: `Admin user "${username}" created successfully` 
     });
   } catch (error: any) {
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === '23505') { // PostgreSQL unique constraint violation
       return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
     }
     console.error('Admin creation error:', error);

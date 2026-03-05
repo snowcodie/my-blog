@@ -1,78 +1,84 @@
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
 
-const pool = mysql.createPool({
+const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'my_blog',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  ssl: process.env.DB_HOST?.includes('aivencloud') || process.env.DB_HOST?.includes('railway') 
-    ? { rejectUnauthorized: true } 
-    : undefined,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'blog_db',
 });
 
 export async function getConnection() {
-  return await pool.getConnection();
+  return await pool.connect();
 }
 
 export async function query(sql: string, values?: any[]) {
-  const connection = await getConnection();
   try {
-    const [results] = await connection.execute(sql, values || []);
-    return results;
-  } finally {
-    connection.release();
+    const result = await pool.query(sql, values || []);
+    return result.rows;
+  } catch (error) {
+    console.error('Query error:', error);
+    throw error;
   }
 }
 
 export async function initializeDatabase() {
-  const connection = await getConnection();
+  const client = await getConnection();
   try {
     // Create series table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS series (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         name VARCHAR(255) UNIQUE NOT NULL,
         category VARCHAR(100) DEFAULT 'general',
         description TEXT,
         total_parts INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX (name),
-        INDEX (category)
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_series_name ON series(name)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_series_category ON series(category)
+    `);
+
     // Create posts table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS posts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         slug VARCHAR(255) UNIQUE NOT NULL,
         title VARCHAR(255) NOT NULL,
-        content LONGTEXT NOT NULL,
+        content TEXT NOT NULL,
         excerpt VARCHAR(500),
         category VARCHAR(100) DEFAULT 'ones&zeros',
-        cover_image LONGTEXT,
+        cover_image TEXT,
         likes INT DEFAULT 0,
         views INT DEFAULT 0,
         series_id INT,
         series_part INT,
         published BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE SET NULL,
-        INDEX (category),
-        INDEX (series_id)
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE SET NULL
       )
     `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_posts_series_id ON posts(series_id)
+    `);
+
     // Create comments table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS comments (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         post_id INT NOT NULL,
         author VARCHAR(100) NOT NULL,
         email VARCHAR(100),
@@ -80,15 +86,18 @@ export async function initializeDatabase() {
         likes INT DEFAULT 0,
         approved BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-        INDEX (post_id)
+        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
       )
     `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)
+    `);
+
     // Create admin users table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS admin_users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         username VARCHAR(100) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -96,50 +105,61 @@ export async function initializeDatabase() {
     `);
 
     // Create site settings table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_settings (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         site_name VARCHAR(255) DEFAULT 'My Blog',
-        site_logo LONGTEXT,
-        site_favicon LONGTEXT,        site_favicon_dark LONGTEXT,        site_description TEXT,
+        site_logo TEXT,
+        site_favicon TEXT,
+        site_favicon_dark TEXT,
+        site_description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     // Create navigation sections table
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS nav_sections (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         slug VARCHAR(100) UNIQUE NOT NULL,
-        icon LONGTEXT,
+        icon TEXT,
         description TEXT,
         category_id VARCHAR(100),
         order_index INT DEFAULT 0,
         active BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX (order_index)
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_nav_sections_order ON nav_sections(order_index)
+    `);
+
     // Create user_post_likes table for tracking individual user likes
-    await connection.execute(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS user_post_likes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         user_token VARCHAR(255) NOT NULL,
         post_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_user_post (user_token, post_id),
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-        INDEX idx_user_token (user_token),
-        INDEX idx_post_id (post_id)
+        UNIQUE (user_token, post_id),
+        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
       )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_post_likes_user_token ON user_post_likes(user_token)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_post_likes_post_id ON user_post_likes(post_id)
     `);
 
     console.log('Database initialized successfully');
   } finally {
-    connection.release();
+    client.release();
   }
 }

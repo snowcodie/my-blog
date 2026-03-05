@@ -37,7 +37,7 @@ interface NavbarProps {
   onCategoryChange?: (category: string) => void;
 }
 
-export default function Navbar({ posts, activeCategory, onCategoryChange }: NavbarProps) {
+export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
