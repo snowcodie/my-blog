@@ -21,9 +21,15 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   try {
+    // Validate postId is numeric
+    const postId = parseInt(params.postId);
+    if (isNaN(postId)) {
+      return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
+    }
+
     const results = await query(
-      'SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC',
-      [params.postId]
+      'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at ASC',
+      [postId]
     ) as Comment[];
 
     // Build tree structure

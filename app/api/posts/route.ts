@@ -33,16 +33,31 @@ export async function GET(request: NextRequest) {
     
     if (series) {
       // Get all posts in a series (series can be name or id)
-      const results = await query(
-        `SELECT p.id, p.slug, p.title, p.series_part, s.name as series_name, s.total_parts as series_total
-         FROM posts p
-         JOIN series s ON p.series_id = s.id
-         WHERE (s.name = $1 OR s.id = $2) AND p.published = true
-         ORDER BY p.series_part ASC`,
-        [series, series]
-      ) as Post[];
-      
-      return NextResponse.json(results);
+      // Validate that series is either a valid name or numeric id
+      const seriesId = parseInt(series);
+      if (isNaN(seriesId)) {
+        // Treat as series name
+        const results = await query(
+          `SELECT p.id, p.slug, p.title, p.series_part, s.name as series_name, s.total_parts as series_total
+           FROM posts p
+           JOIN series s ON p.series_id = s.id
+           WHERE s.name = $1 AND p.published = true
+           ORDER BY p.series_part ASC`,
+          [series]
+        ) as Post[];
+        return NextResponse.json(results);
+      } else {
+        // Treat as series id
+        const results = await query(
+          `SELECT p.id, p.slug, p.title, p.series_part, s.name as series_name, s.total_parts as series_total
+           FROM posts p
+           JOIN series s ON p.series_id = s.id
+           WHERE s.id = $1 AND p.published = true
+           ORDER BY p.series_part ASC`,
+          [seriesId]
+        ) as Post[];
+        return NextResponse.json(results);
+      }
     } else if (slug) {
       // Get single post by slug with comment count
       // For admin, show all posts; for public, only published

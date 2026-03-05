@@ -113,6 +113,9 @@ export async function initializeDatabase() {
         site_favicon TEXT,
         site_favicon_dark TEXT,
         site_description TEXT,
+        hero_title TEXT,
+        hero_subtitle TEXT,
+        hero_background TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

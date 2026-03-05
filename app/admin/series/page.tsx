@@ -182,11 +182,11 @@ export default function SeriesManagementPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50">
       <AdminSidebar />
       
-      <div className="flex-1 transition-all duration-300">
-        <div className="p-8">
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-6xl mx-auto p-6">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">

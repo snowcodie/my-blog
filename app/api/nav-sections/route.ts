@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the next order_index
-    const maxResults = await query('SELECT COALESCE(MAX(order_index), 0) as maxIndex FROM nav_sections');
+    const maxResults = await query('SELECT COALESCE(MAX(order_index), 0)::integer as max_index FROM nav_sections');
     const nextOrderIndex = (Array.isArray(maxResults) && maxResults.length > 0) 
-      ? (maxResults[0] as any).maxIndex + 1 
+      ? (maxResults[0] as any).max_index + 1 
       : 0;
 
     await query(
