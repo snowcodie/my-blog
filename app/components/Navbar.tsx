@@ -191,7 +191,7 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
         </div>
 
         {/* Mobile Menu - Admin Link */}
-        {isMobileMenuOpen && (
+        {/* {isMobileMenuOpen && (
           <div className="pb-3 sm:hidden border-t border-slate-200 dark:border-slate-700 pt-3">
             <Link
               href="/admin"
@@ -201,7 +201,7 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
               Admin Panel
             </Link>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Hide scrollbar in sections scroll */}
