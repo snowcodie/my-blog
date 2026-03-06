@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, Moon, Sun, Menu, X, Code2 } from 'lucide-react';
+import { BookOpen, Moon, Sun, Menu, X } from 'lucide-react';
 import axios from 'axios';
 
 interface Post {
