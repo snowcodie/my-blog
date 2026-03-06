@@ -437,9 +437,7 @@ export default function Home() {
                 </h2>
                 
                 <p className="text-lg text-slate-700 dark:text-slate-300 mb-8 text-center leading-relaxed">
-                  I'm a passionate developer and problem solver who loves exploring the intersection of software, hardware, and creativity. 
-                  Whether it's building elegant web applications, tinkering with mechanical systems, or discovering new places, 
-                  I'm always eager to learn and share my journey.
+                  Hi, I’m Lahiru. I’m someone who enjoys understanding how things work—whether it’s a machine, a motorcycle engine, a piece of software, or a complex business process. My interests span across mechanics, bikes, software development, SAP systems, and exploring how technology can improve real-world workflows. I enjoy building and experimenting with technologies like Spring Boot, Laravel, Next.js, Angular, PostgreSQL, and TypeScript, while also learning and exploring SAP and ABAP. I’m always curious about systems, problem solving, and learning new things. This blog is where I share things I learn along the way, including ideas, challenges, and insights from my journey through technology and continuous learning.
                 </p>
 
                 <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -450,10 +448,12 @@ export default function Home() {
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white">Interests</h3>
                     </div>
                     <ul className="space-y-2 text-slate-700 dark:text-slate-300">
-                      <li>🌍 Travel & Exploration</li>
-                      <li>📚 Continuous Learning</li>
-                      <li>🎨 Creative Problem Solving</li>
-                      <li>🔧 Hands-on Building</li>
+                      <li>Mechanics</li>
+                      <li>Motorcycles</li>
+                      <li>Software Engineering</li>
+                      <li>SAP Systems</li>
+                      <li>Business Processes</li>
+                      <li>Learning New Technologies</li>
                     </ul>
                   </div>
 
@@ -464,10 +464,12 @@ export default function Home() {
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white">Skills</h3>
                     </div>
                     <ul className="space-y-2 text-slate-700 dark:text-slate-300">
-                      <li>💻 Full-Stack Development</li>
-                      <li>🎯 System Architecture</li>
-                      <li>🔍 Debugging & Optimization</li>
-                      <li>📝 Technical Writing</li>
+                      <li>Backend Development</li>
+                      <li>API Development</li>
+                      <li>Database Design</li>
+                      <li>System Integration</li>
+                      <li>Debugging</li>
+                      <li>Business Process Understanding</li>
                     </ul>
                   </div>
 
@@ -475,13 +477,19 @@ export default function Home() {
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
                     <div className="flex items-center gap-3 mb-4">
                       <Code className="text-blue-600 dark:text-cyan-400" size={24} />
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Technologies</h3>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Technical Skills</h3>
                     </div>
                     <ul className="space-y-2 text-slate-700 dark:text-slate-300">
-                      <li>⚛️ React & Next.js</li>
-                      <li>🟦 TypeScript</li>
-                      <li>🐘 MySQL & PostgreSQL</li>
-                      <li>🎨 Tailwind CSS</li>
+                      <li>Java</li>
+                      <li>ABAP</li>
+                      <li>SAP HANA</li>
+                      <li>SQL</li>
+                      <li>TypeScript</li>
+                      <li>Spring Boot</li>
+                      <li>Laravel</li>
+                      <li>Next.js</li>
+                      <li>Angular</li>
+                      <li>PostgreSQL</li>
                     </ul>
                   </div>
                 </div>
