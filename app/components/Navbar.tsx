@@ -48,7 +48,7 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
     site_favicon: '',
     site_description: '',
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed from true to false
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +62,21 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
 
   const fetchData = async () => {
     try {
+      // Try to load from cache first
+      const cachedNav = localStorage.getItem('navSections');
+      const cachedSettings = localStorage.getItem('siteSettings');
+      const cacheTime = localStorage.getItem('navCacheTime');
+      
+      // Use cache if it's less than 5 minutes old
+      const isCacheValid = cacheTime && (Date.now() - parseInt(cacheTime)) < 5 * 60 * 1000;
+      
+      if (isCacheValid && cachedNav && cachedSettings) {
+        setSiteSettings(JSON.parse(cachedSettings));
+        setNavSections(JSON.parse(cachedNav));
+        return; // Skip API call if cache is valid
+      }
+
+      // Fetch from API in background
       const [settingsRes, navRes] = await Promise.all([
         axios.get('/api/settings'),
         axios.get('/api/nav-sections'),
@@ -69,10 +84,20 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
 
       setSiteSettings(settingsRes.data);
       setNavSections(navRes.data);
+      
+      // Cache the results
+      localStorage.setItem('navSections', JSON.stringify(navRes.data));
+      localStorage.setItem('siteSettings', JSON.stringify(settingsRes.data));
+      localStorage.setItem('navCacheTime', Date.now().toString());
     } catch (error) {
       console.error('Error fetching navbar data:', error);
-    } finally {
-      setLoading(false);
+      // Try to use stale cache on error
+      const cachedNav = localStorage.getItem('navSections');
+      const cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedNav && cachedSettings) {
+        setSiteSettings(JSON.parse(cachedSettings));
+        setNavSections(JSON.parse(cachedNav));
+      }
     }
   };
 
@@ -111,9 +136,7 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
           {/* Sections - Center (scrollable on mobile) */}
           <div className="flex-1 overflow-x-auto scrollbar-hide">
             <div className="flex gap-1 md:gap-2 flex-nowrap">
-              {loading ? (
-                <div className="text-slate-500 text-xs animate-pulse whitespace-nowrap">Loading...</div>
-              ) : navSections.length > 0 ? (
+              {navSections.length > 0 ? (
                 navSections.map((section) => {
                   const isActive = activeCategory === section.slug;
 
@@ -124,7 +147,7 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
                       onClick={(e) => {
                         if (typeof onCategoryChange === 'function') {
                           e.preventDefault();
-                          onCategoryChange(section.id?.toString() || section.slug);
+                          onCategoryChange(section.slug);
                         }
                       }}
                       className={`flex items-center gap-1 px-3 py-2 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap text-xs sm:text-sm flex-shrink-0 group ${
@@ -135,17 +158,20 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
                       title={section.description}
                     >
                       {section.icon && (section.icon.startsWith('data:') || section.icon.startsWith('/')) ? (
-                        <img src={section.icon} alt={section.name} className={`w-3.5 h-3.5 object-contain ${!isActive ? 'group-hover:scale-110 dark:invert' : ''} transition-transform`} />
+                        <img 
+                          src={section.icon} 
+                          alt={section.name} 
+                          className={`w-4 h-4 sm:w-5 sm:h-5 object-contain ${!isActive ? 'group-hover:scale-110' : ''} transition-transform`}
+                          style={{ filter: isActive ? 'brightness(0) invert(1)' : 'none' }}
+                        />
                       ) : (
-                        <BookOpen size={14} className={`${isActive ? 'text-white' : 'text-slate-900 dark:text-white'} ${!isActive ? 'group-hover:scale-110' : ''} transition-transform`} />
+                        <BookOpen size={16} className={`${isActive ? 'text-white' : 'text-slate-900 dark:text-white'} ${!isActive ? 'group-hover:scale-110' : ''} transition-transform`} />
                       )}
                       <span className="hidden sm:inline">{section.name}</span>
                     </Link>
                   );
                 })
-              ) : (
-                <div className="text-slate-500 text-xs whitespace-nowrap">No sections</div>
-              )}
+              ) : null}
             </div>
           </div>
 

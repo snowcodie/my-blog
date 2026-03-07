@@ -6,7 +6,6 @@ import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowRight, Zap, Code, MapPin } from 'lucide-react';
 import Navbar from '@/app/components/Navbar';
-import LoadingScreen from '@/app/components/LoadingScreen';
 
 interface Post {
   id: number;
@@ -29,10 +28,8 @@ interface Post {
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeCategory, setActiveCategory] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [fullyReady, setFullyReady] = useState(false);
   const [siteName, setSiteName] = useState('My Blog');
   const [heroTitle, setHeroTitle] = useState('Welcome to My Blog');
   const [heroSubtitle, setHeroSubtitle] = useState('Explore my thoughts on software, mechanics, and travels');
@@ -59,20 +56,6 @@ export default function Home() {
     }
   }, [posts]);
 
-  // Check when everything is ready and allow a render delay
-  useEffect(() => {
-    if (mounted && !loading && settingsLoaded && !fullyReady) {
-      // Add a small delay to ensure everything is rendered properly
-      const timer = setTimeout(() => {
-        setFullyReady(true);
-      }, 300); // 300ms delay to ensure full render
-      
-      return () => clearTimeout(timer);
-    }
-    // No cleanup needed for other paths
-    return undefined;
-  }, [mounted, loading, settingsLoaded, fullyReady]);
-
   const fetchSettings = async () => {
     try {
       const response = await axios.get('/api/settings');
@@ -85,8 +68,6 @@ export default function Home() {
       document.title = name;
     } catch (error) {
       console.error('Error fetching settings:', error);
-    } finally {
-      setSettingsLoaded(true);
     }
   };
 
@@ -104,13 +85,11 @@ export default function Home() {
       if (categoryFromUrl) {
         setActiveCategory(categoryFromUrl);
       } else if (sectionsResponse.data && sectionsResponse.data.length > 0) {
-        setActiveCategory(sectionsResponse.data[0].id.toString());
+        setActiveCategory(sectionsResponse.data[0].slug || sectionsResponse.data[0].id.toString());
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
       setPosts([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -165,11 +144,6 @@ export default function Home() {
     return result;
   }, [filteredPosts]);
 
-  // Show loading screen until everything is fully ready
-  if (!fullyReady) {
-    return <LoadingScreen />;
-  }
-
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Navbar */}
@@ -182,10 +156,10 @@ export default function Home() {
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroBackground})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center'
-        } : {}}
+        } : undefined}
       >
-        <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-          <div className="flex justify-center mb-6">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="inline-block bg-blue-500/20 dark:bg-cyan-500/20 p-4 rounded-full mb-6">
             <Zap size={48} />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6">{heroTitle}</h1>

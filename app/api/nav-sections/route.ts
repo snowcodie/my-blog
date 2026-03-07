@@ -10,10 +10,17 @@ export async function GET(request: NextRequest) {
     
     const sql = includeInactive 
       ? 'SELECT * FROM nav_sections ORDER BY order_index ASC'
-      : 'SELECT id, name, slug FROM nav_sections WHERE active = true ORDER BY order_index ASC';
+      : 'SELECT id, name, slug, icon, description FROM nav_sections WHERE active = true ORDER BY order_index ASC';
     
     const results = await query(sql);
-    return NextResponse.json(results || []);
+    
+    // Add cache headers for public requests (5 minutes cache)
+    const response = NextResponse.json(results || []);
+    if (!includeInactive) {
+      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    }
+    
+    return response;
   } catch (error) {
     console.error('Nav sections fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch nav sections' }, { status: 500 });

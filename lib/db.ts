@@ -83,18 +83,27 @@ export async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS comments (
         id SERIAL PRIMARY KEY,
         post_id INT NOT NULL,
+        parent_comment_id INT,
         author VARCHAR(100) NOT NULL,
         email VARCHAR(100),
+        is_anonymous BOOLEAN DEFAULT false,
+        generated_name VARCHAR(100),
+        is_author BOOLEAN DEFAULT false,
         content TEXT NOT NULL,
         likes INT DEFAULT 0,
         approved BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+        FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE
       )
     `);
 
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_comment_id)
     `);
 
     // Create admin users table

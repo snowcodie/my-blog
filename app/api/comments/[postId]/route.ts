@@ -70,7 +70,7 @@ export async function POST(
     }
 
     await query(
-      'INSERT INTO comments (post_id, parent_comment_id, author, email, is_anonymous, generated_name, is_author, content, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO comments (post_id, parent_comment_id, author, email, is_anonymous, generated_name, is_author, content, approved) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
       [params.postId, parentCommentId || null, finalAuthor, email || null, anonymous, generatedName, isAdmin, content, true]
     );
 
