@@ -48,7 +48,6 @@ export default function Navbar({ activeCategory, onCategoryChange }: NavbarProps
     site_favicon: '',
     site_description: '',
   });
-  const [loading, setLoading] = useState(false); // Changed from true to false
 
   useEffect(() => {
     setMounted(true);

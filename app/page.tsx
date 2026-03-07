@@ -28,8 +28,7 @@ interface Post {
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeCategory, setActiveCategory] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [loading] = useState(false);
   const [siteName, setSiteName] = useState('My Blog');
   const [heroTitle, setHeroTitle] = useState('Welcome to My Blog');
   const [heroSubtitle, setHeroSubtitle] = useState('Explore my thoughts on software, mechanics, and travels');
@@ -38,7 +37,6 @@ export default function Home() {
   const [selectedSeries, setSelectedSeries] = useState<string>('');
 
   useEffect(() => {
-    setMounted(true);
     fetchPosts();
     fetchSettings();
   }, []);
