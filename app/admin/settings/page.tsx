@@ -18,6 +18,40 @@ interface SiteSettings {
   hero_background: string;
 }
 
+// Compress image before converting to base64
+const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize if needed
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 with compression
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function SettingsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
@@ -85,15 +119,11 @@ export default function SettingsPage() {
 
     setUploadingLogo(true);
     try {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        setSettings({ ...settings, site_logo: base64 });
-        setUploadingLogo(false);
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImage(file, 400, 0.8); // Logo: 400px max, 80% quality
+      setSettings({ ...settings, site_logo: compressed });
+      setUploadingLogo(false);
     } catch (error) {
-      console.error('Error reading file:', error);
+      console.error('Error compressing image:', error);
       setUploadingLogo(false);
     }
   };
@@ -116,33 +146,26 @@ export default function SettingsPage() {
     setMessage('');
 
     try {
-      const reader = new FileReader();
+      const compressed = await compressImage(file, 64, 0.9); // Favicon: 64px max, 90% quality
       
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        
-        if (!base64 || !base64.startsWith('data:')) {
-          setMessage('Failed to read file. Please try again.');
-          setMessageType('error');
-          setUploadingFavicon(false);
-          return;
-        }
-        
-        console.log('✓ Favicon loaded successfully');
-        console.log('📊 Data URI preview:', base64.substring(0, 100) + '...');
-        console.log('📏 Full length:', base64.length, 'characters');
-        console.log('🎨 MIME type:', base64.match(/data:([^;]+)/)?.[1] || 'unknown');
-        
-        setSettings({ ...settings, site_favicon: base64 });
-        setMessage('Favicon uploaded! Click "Save Settings" to apply.');
-        setMessageType('success');
+      if (!compressed || !compressed.startsWith('data:')) {
+        setMessage('Failed to compress file. Please try again.');
+        setMessageType('error');
         setUploadingFavicon(false);
-        
-        setTimeout(() => setMessage(''), 3000);
-      };
+        return;
+      }
       
-      reader.onerror = () => {
-        setMessage('Failed to read file. Please try again.');
+      console.log('✓ Favicon compressed successfully');
+      console.log('📏 Compressed size:', compressed.length, 'characters');
+      
+      setSettings({ ...settings, site_favicon: compressed });
+      setMessage('Favicon uploaded! Click "Save Settings" to apply.');
+      setMessageType('success');
+      setUploadingFavicon(false);
+      
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Failed to compress file. Please try again.');
         setMessageType('error');
         setUploadingFavicon(false);
         e.target.value = '';
@@ -175,39 +198,24 @@ export default function SettingsPage() {
     setMessage('');
 
     try {
-      const reader = new FileReader();
+      const compressed = await compressImage(file, 64, 0.9); // Favicon: 64px max, 90% quality
       
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        
-        if (!base64 || !base64.startsWith('data:')) {
-          setMessage('Failed to read file. Please try again.');
-          setMessageType('error');
-          setUploadingFaviconDark(false);
-          return;
-        }
-        
-        console.log('✓ Dark favicon loaded successfully');
-        console.log('📊 Data URI preview:', base64.substring(0, 100) + '...');
-        console.log('📏 Full length:', base64.length, 'characters');
-        console.log('🎨 MIME type:', base64.match(/data:([^;]+)/)?.[1] || 'unknown');
-        
-        setSettings({ ...settings, site_favicon_dark: base64 });
-        setMessage('Dark favicon uploaded! Click "Save Settings" to apply.');
-        setMessageType('success');
-        setUploadingFaviconDark(false);
-        
-        setTimeout(() => setMessage(''), 3000);
-      };
-      
-      reader.onerror = () => {
-        setMessage('Failed to read file. Please try again.');
+      if (!compressed || !compressed.startsWith('data:')) {
+        setMessage('Failed to compress file. Please try again.');
         setMessageType('error');
         setUploadingFaviconDark(false);
-        e.target.value = '';
-      };
+        return;
+      }
       
-      reader.readAsDataURL(file);
+      console.log('✓ Dark favicon compressed successfully');
+      console.log('📏 Compressed size:', compressed.length, 'characters');
+      
+      setSettings({ ...settings, site_favicon_dark: compressed });
+      setMessage('Dark favicon uploaded! Click "Save Settings" to apply.');
+      setMessageType('success');
+      setUploadingFaviconDark(false);
+      
+      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error reading file:', error);
       setMessage('Error uploading dark favicon. Please try again.');
@@ -228,22 +236,19 @@ export default function SettingsPage() {
     }
 
     setUploadingHeroBackground(true);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      if (result) {
-        setSettings((prev) => ({ ...prev, hero_background: result }));
+    try {
+      const compressed = await compressImage(file, 1920, 0.75); // Hero: 1920px max, 75% quality
+      if (compressed) {
+        setSettings((prev) => ({ ...prev, hero_background: compressed }));
         setMessage('Hero background uploaded successfully');
         setMessageType('success');
       }
       setUploadingHeroBackground(false);
-    };
-    reader.onerror = () => {
-      setMessage('Failed to read hero background image');
+    } catch (error) {
+      setMessage('Failed to compress hero background image');
       setMessageType('error');
       setUploadingHeroBackground(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = async () => {
