@@ -165,16 +165,8 @@ export default function SettingsPage() {
       
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      console.error('Error compressing favicon:', error);
       setMessage('Failed to compress file. Please try again.');
-        setMessageType('error');
-        setUploadingFavicon(false);
-        e.target.value = '';
-      };
-      
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error reading file:', error);
-      setMessage('Error uploading favicon. Please try again.');
       setMessageType('error');
       setUploadingFavicon(false);
       e.target.value = '';
