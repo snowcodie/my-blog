@@ -37,7 +37,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [commentsOpen, setCommentsOpen] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentsWidth, setCommentsWidth] = useState(400);
   const [isResizing, setIsResizing] = useState(false);
   const [navbarVisible, setNavbarVisible] = useState(true);
