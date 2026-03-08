@@ -1,5 +1,16 @@
 import { Pool } from 'pg';
 
+// Debug: Log environment variables (remove password for security)
+if (process.env.VERCEL) {
+  console.log('Database config:', {
+    host: process.env.DB_HOST || 'NOT SET',
+    port: process.env.DB_PORT || 'NOT SET',
+    user: process.env.DB_USER || 'NOT SET',
+    database: process.env.DB_NAME || 'NOT SET',
+    hasPassword: !!process.env.DB_PASSWORD,
+  });
+}
+
 const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('aiven');
 
 // Configure connection pool for serverless environment
