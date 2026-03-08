@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
-// Configure route for Vercel
+// Configure route for Vercel - ensure no caching for dynamic route
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -38,6 +39,18 @@ export async function GET() {
     // console.error('❌ Settings fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
+}
+
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Allow': 'GET, PUT, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+    },
+  });
 }
 
 export async function PUT(request: NextRequest) {

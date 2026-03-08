@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 
 const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('aiven');
 
+// Configure connection pool for serverless environment
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
@@ -9,6 +10,16 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'blog_db',
   ssl: isProduction ? { rejectUnauthorized: false } : false,
+  // Serverless optimization
+  max: 1, // Maximum connections per function instance (important for serverless!)
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 10000, // Timeout if connection can't be established in 10 seconds
+  allowExitOnIdle: true, // Allow the pool to close all connections and exit when idle
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('Unexpected database pool error:', err);
 });
 
 export async function getConnection() {
@@ -16,12 +27,15 @@ export async function getConnection() {
 }
 
 export async function query(sql: string, values?: any[]) {
+  const client = await pool.connect();
   try {
-    const result = await pool.query(sql, values || []);
+    const result = await client.query(sql, values || []);
     return result.rows;
   } catch (error) {
     console.error('Query error:', error);
     throw error;
+  } finally {
+    client.release(); // Always release the connection back to the pool
   }
 }
 
