@@ -308,7 +308,28 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
 
             {/* Post Content */}
             <div 
-              className="prose prose-lg dark:prose-invert mb-6 max-w-none [&_*]:!text-slate-900 dark:[&_*]:!text-slate-100 [&_a]:!text-blue-600 dark:[&_a]:!text-blue-400 [&_code]:!text-purple-600 dark:[&_code]:!text-purple-400"
+              className="prose prose-lg dark:prose-invert mb-6 max-w-none
+                [&_*]:!text-slate-900 dark:[&_*]:!text-slate-100
+                [&_a]:!text-blue-600 dark:[&_a]:!text-blue-400 [&_a]:!underline hover:[&_a]:!text-blue-700
+                [&_code]:!text-purple-600 dark:[&_code]:!text-purple-400 [&_code]:!bg-slate-100 dark:[&_code]:!bg-slate-800 [&_code]:!px-1 [&_code]:!py-0.5 [&_code]:!rounded
+                [&_pre]:!bg-slate-900 [&_pre]:!text-slate-100 [&_pre]:!p-4 [&_pre]:!rounded-lg [&_pre]:!overflow-x-auto
+                [&_pre_code]:!bg-transparent [&_pre_code]:!text-slate-100 [&_pre_code]:!p-0
+                [&_h1]:!text-3xl [&_h1]:!font-bold [&_h1]:!mb-4 [&_h1]:!mt-8
+                [&_h2]:!text-2xl [&_h2]:!font-bold [&_h2]:!mb-3 [&_h2]:!mt-6
+                [&_h3]:!text-xl [&_h3]:!font-bold [&_h3]:!mb-2 [&_h3]:!mt-4
+                [&_h4]:!text-lg [&_h4]:!font-semibold [&_h4]:!mb-2 [&_h4]:!mt-3
+                [&_p]:!mb-4 [&_p]:!leading-relaxed
+                [&_ul]:!list-disc [&_ul]:!ml-6 [&_ul]:!mb-4 [&_ul]:!space-y-2
+                [&_ol]:!list-decimal [&_ol]:!ml-6 [&_ol]:!mb-4 [&_ol]:!space-y-2
+                [&_li]:!mb-1 [&_li]:!leading-relaxed
+                [&_blockquote]:!border-l-4 [&_blockquote]:!border-blue-500 [&_blockquote]:!pl-4 [&_blockquote]:!py-2 [&_blockquote]:!my-4 [&_blockquote]:!bg-slate-50 dark:[&_blockquote]:!bg-slate-800/50 [&_blockquote]:!italic
+                [&_table]:!w-full [&_table]:!border-collapse [&_table]:!mb-4
+                [&_th]:!bg-slate-100 dark:[&_th]:!bg-slate-800 [&_th]:!border [&_th]:!border-slate-300 dark:[&_th]:!border-slate-600 [&_th]:!p-2 [&_th]:!font-semibold
+                [&_td]:!border [&_td]:!border-slate-300 dark:[&_td]:!border-slate-600 [&_td]:!p-2
+                [&_img]:!rounded-lg [&_img]:!my-4 [&_img]:!max-w-full [&_img]:!h-auto
+                [&_hr]:!my-6 [&_hr]:!border-slate-300 dark:[&_hr]:!border-slate-700
+                [&_strong]:!font-bold [&_em]:!italic
+                [&_mark]:!bg-yellow-200 dark:[&_mark]:!bg-yellow-900 [&_mark]:!px-1"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
