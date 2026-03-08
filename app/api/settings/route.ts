@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 
+// Configure route for Vercel
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     // console.log('📥 API: Fetching settings from database...');
@@ -65,6 +69,17 @@ export async function PUT(request: NextRequest) {
                       (hero_subtitle?.length || 0) + 
                       (hero_background?.length || 0);
 
+    // Check if total size exceeds Vercel's 4.5MB limit
+    const MAX_SIZE = 4.5 * 1024 * 1024; // 4.5MB in bytes
+    if (totalSize > MAX_SIZE) {
+      console.error('❌ Payload too large:', (totalSize / 1024 / 1024).toFixed(2), 'MB (max: 4.5MB)');
+      return NextResponse.json({ 
+        error: 'Payload too large. Images must be smaller to fit within 4.5MB limit.',
+        size: (totalSize / 1024 / 1024).toFixed(2) + 'MB',
+        limit: '4.5MB'
+      }, { status: 413 });
+    }
+
     console.log('📝 Updating settings:', {
       site_name,
       has_logo: !!site_logo,
@@ -82,9 +97,9 @@ export async function PUT(request: NextRequest) {
       total_size_mb: (totalSize / 1024 / 1024).toFixed(2)
     });
 
-    // Warn if data is too large (over 1MB)
-    if (totalSize > 1024 * 1024) {
-      console.warn('⚠️ WARNING: Total data size exceeds 1MB:', (totalSize / 1024 / 1024).toFixed(2), 'MB');
+    // Warn if data is approaching the limit
+    if (totalSize > 3 * 1024 * 1024) {
+      console.warn('⚠️ WARNING: Total data size is large:', (totalSize / 1024 / 1024).toFixed(2), 'MB - approaching 4.5MB limit');
     }
 
     // Validate site_name

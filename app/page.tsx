@@ -42,6 +42,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Scroll to posts section when category changes
+    if (activeCategory) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        const postsSection = document.getElementById('posts-section');
+        if (postsSection) {
+          postsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [activeCategory]);
+
+  useEffect(() => {
     // Extract unique series names from posts
     if (posts.length > 0) {
       const seriesNames = new Set<string>();
@@ -166,7 +179,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div id="posts-section" className="max-w-7xl mx-auto px-4 py-12">
         {/* Series Filter Section */}
         {availableSeries.length > 0 && (
           <div className="mb-8 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 rounded-xl p-6 border border-purple-100 dark:border-purple-900">
